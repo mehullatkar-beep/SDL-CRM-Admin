@@ -9,7 +9,12 @@ const PRODUCTION_REQUIRED = [
   "UPSTASH_REDIS_REST_TOKEN",
 ] as const;
 
+export function isPrototypeMode(env: NodeJS.Dict<string> = process.env) {
+  return env.SDL_PROTOTYPE_MODE === "true";
+}
+
 export function isManagedProduction(env: NodeJS.Dict<string> = process.env) {
+  if (isPrototypeMode(env)) return false;
   return env.VERCEL_ENV === "production" || env.SDL_REQUIRE_PRODUCTION_ENV === "true";
 }
 

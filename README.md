@@ -57,11 +57,11 @@ LAB_MASTER_API_TOKEN=...
 
 The HTTP adapter expects the normalized contract documented by `/api/openapi`-adjacent integration tests. Replace the isolated mapper when official CrelioHealth sandbox documentation is available; do not spread vendor payload fields into catalog or UI code.
 
-## Vercel / customer handoff
+## Prototype deployment (stakeholder review)
 
-**The lab customer only receives a URL and login credentials.** SDL ops configures Vercel before handoff — see [`DEPLOYMENT.md`](DEPLOYMENT.md).
+This Vercel deploy is a **UI/flow prototype** for lab approval — not production. SDL ops follows [`DEPLOYMENT.md`](DEPLOYMENT.md). Stakeholders receive **URL + demo login only** (`admin@sdl.local` / `Admin123!`).
 
-Migrations and first admin creation are automatic once SDL sets env vars and deploys.
+Set `SDL_PROTOTYPE_MODE=true` on Vercel with `AUTH_SECRET` and Neon `DATABASE_URL`. Mock lab catalog and sample packages/coupons/banners seed automatically.
 
 Order write-back and CrelioHealth webhooks are reserved at `src/lib/lims-orders/` and `POST /api/webhooks/crelio` until the vendor documents those contracts. Do not invent payload fields.
 

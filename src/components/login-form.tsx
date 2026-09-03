@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function LoginForm() {
+export function LoginForm({ showDemoCredentials = false }: { showDemoCredentials?: boolean }) {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/catalog/tests";
   const [state, action, pending] = useActionState(loginAction, undefined);
@@ -67,11 +67,11 @@ export function LoginForm() {
         </form>
         </CardContent>
       </Card>
-      {process.env.NODE_ENV !== "production" ? (
+      {showDemoCredentials ? (
       <div className="mt-5 rounded-xl border bg-card px-4 py-3.5 shadow-xs">
         <p className="text-muted-foreground mb-2 flex items-center gap-1.5 text-[11px] font-semibold tracking-wide uppercase">
           <ShieldCheck className="size-3.5" />
-          Demo workspace
+          Prototype demo login
         </p>
         <div className="space-y-1 text-xs">
           <p>

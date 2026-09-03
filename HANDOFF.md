@@ -105,7 +105,7 @@ Playwright `webServer` seeds demo users. Coupon e2e codes must be unique (`Date.
 1. **Checkout coupon apply** — `POST /api/v1/checkout/validate-coupon` (or cart session) that calls `evaluateCoupon`; OpenAPI; `coupon_redemptions` + increment `redemptionCount` / `maxPerPatient` once a patient/order identity exists.
 2. **Notification templates** — Portal → Notifications is on/off only; email/SMS/push copy waits on the portal.
 3. **Cart / booked orders** — `/orders` is still a placeholder; LIMS write-back waits on Crelio docs.
-4. **Vercel go-live** — SDL ops follows [`DEPLOYMENT.md`](DEPLOYMENT.md); lab gets URL + credentials only. Need Neon, `AUTH_SECRET`, bootstrap admin; Blob/Upstash/Crelio before full production.
+4. **Prototype on Vercel** — SDL ops follows [`DEPLOYMENT.md`](DEPLOYMENT.md): `SDL_PROTOTYPE_MODE=true`, Neon, `AUTH_SECRET`. Stakeholders get URL + demo login for flow approval only.
 5. **Crelio HTTP mapper** — replace guessed field mapping only when official sandbox docs exist. Token header is `X-Internal-Token`; lab filter is `LAB_MASTER_LAB_PUBLIC_KEY`.
 
 ---

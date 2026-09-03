@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AdminHeader } from "@/components/admin-header";
 import { AdminSidebar } from "@/components/admin-sidebar";
+import { PrototypeBanner } from "@/components/prototype-banner";
 import { requireSession } from "@/lib/session";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -22,6 +23,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <AdminSidebar />
       <SidebarInset id="admin-content" tabIndex={-1}>
         <AdminHeader user={session.user} />
+        <PrototypeBanner />
         <div className="flex min-h-0 flex-1 flex-col">{children}</div>
       </SidebarInset>
     </SidebarProvider>

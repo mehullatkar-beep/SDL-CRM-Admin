@@ -1,74 +1,55 @@
-# SDL ops — deploy and hand off to the lab
+# SDL prototype deployment (stakeholder review)
 
-**Internal only.** The lab customer receives a **URL + login credentials**. They do not configure Vercel, Neon, env vars, or run any scripts.
+**Internal SDL ops only.** This is a **click-through prototype** for lab approval on flows, layout, and where configuration lives. It is **not** production, not a UAT environment, and not handed off as a self-service product.
 
-## What the customer gets
+## What stakeholders receive
 
 Share only:
 
-| Item | Example |
+| Item | Value |
 | --- | --- |
-| Admin URL | `https://sdl-crm-admin.vercel.app/login` |
-| Work email | `admin@lab.com` |
-| Password | (the password you set during setup below) |
+| URL | `https://your-project.vercel.app/login` |
+| Admin login | `admin@sdl.local` / `Admin123!` |
+| CRM login (view-only) | `crm@sdl.local` / `Crm123!` |
 
-Nothing else. No setup guide, no dashboard access, no terminal steps.
+They browse the UI and give feedback. No setup, no Vercel access, no env vars.
+
+Sample data includes mock lab tests, one wellness package, a coupon, and a banner.
 
 ---
 
-## SDL setup (before sharing the URL)
+## SDL one-time setup
 
-### 1. Vercel project
+### 1. Vercel env vars (Production)
 
-1. Import the GitHub repo into Vercel.
-2. Connect **Neon** (Storage → Neon). Prefix **`DATABASE`** → `DATABASE_URL`.
-   - If “DATABASE_URL already exists”: delete the placeholder in Environment Variables, then reconnect Neon.
-3. Set **Production** env vars:
-
-| Variable | Notes |
+| Variable | Value |
 | --- | --- |
+| `SDL_PROTOTYPE_MODE` | `true` |
 | `AUTH_SECRET` | `openssl rand -base64 32` |
-| `DATABASE_URL` | From Neon (auto if connected) |
-| `BOOTSTRAP_ADMIN_EMAIL` | The lab admin’s real work email |
-| `BOOTSTRAP_ADMIN_PASSWORD` | Strong password you will share with the lab |
-| `BOOTSTRAP_ADMIN_NAME` | e.g. `Lab Admin` |
+| `DATABASE_URL` | Neon connection string |
+| `LAB_MASTER_PROVIDER` | `mock` (default — keep mock for prototype) |
 
-4. **Deploy.** Migrations run on build; the admin account is created on the first request.
+Do **not** set Blob, Redis, or Crelio vars for the prototype.
 
-### 2. Verify before handoff
+If Neon connect fails with “DATABASE_URL already exists”, delete the empty placeholder in Environment Variables first.
 
-1. Open `/login` on the production URL.
-2. Sign in with the bootstrap email and password.
-3. Confirm `/catalog/tests` loads.
-4. **Remove `BOOTSTRAP_ADMIN_PASSWORD`** from Vercel and redeploy (admin account remains in Neon).
+### 2. Deploy
 
-### 3. Hand off to the lab
+Push to `main` or redeploy. Migrations run on build; demo users and sample catalog seed on first request.
 
-Send the URL, email, and password (secure channel). They sign in and start configuring tests/packages.
+### 3. Verify
 
----
-
-## Optional — add before go-live
-
-Not required for admin login and catalog work. SDL adds these when integrations are ready:
-
-| Variable | Purpose |
-| --- | --- |
-| `BLOB_READ_WRITE_TOKEN` | Image uploads |
-| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | API rate limits |
-| `LAB_MASTER_PROVIDER=http` + Crelio vars | Live test catalog |
-| `NEXT_PUBLIC_CATALOG_CURRENCY` | e.g. `SAR` |
-| `NEXT_PUBLIC_PATIENT_PORTAL_ORIGIN` | Patient portal URL |
-| `ALLOWED_API_ORIGINS` | Mobile app origins |
-
-Preview deployments can use Neon + `AUTH_SECRET` + bootstrap only; mock lab data until Crelio is wired.
+1. Open `/login` — demo credentials are shown on the page.
+2. Sign in as admin and walk through Portal Configurations, Engagement, and Notifications.
+3. Share the URL + credentials with stakeholders.
 
 ---
 
-## Troubleshooting (SDL ops)
+## Scope boundaries (tell stakeholders)
 
-| Symptom | Fix |
-| --- | --- |
-| 500 on every page | `AUTH_SECRET` missing for Production |
-| Login fails | Redeploy after setting `BOOTSTRAP_*`; check build log for “Applied migrations to managed Postgres” |
-| DATABASE_URL conflict | Delete empty placeholder, reconnect Neon |
+- Mock lab test catalog (not live Crelio data)
+- Image uploads may not persist without Blob storage
+- No patient app, checkout, or real notifications sent
+- Data may reset if the Neon database is recreated
+
+When the lab approves the flows, a separate production build drops `SDL_PROTOTYPE_MODE` and wires real integrations.

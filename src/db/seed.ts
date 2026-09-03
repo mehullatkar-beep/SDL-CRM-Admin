@@ -1,8 +1,10 @@
 import { hash } from "bcryptjs";
 import { count } from "drizzle-orm";
 import type { NeonHttpDatabase } from "drizzle-orm/neon-http";
+import { isPrototypeMode } from "@/lib/env";
 import * as schema from "./schema";
 import { packageCategories, users } from "./schema";
+import { seedPrototypeDemoContent } from "./prototype-seed";
 
 type Db = NeonHttpDatabase<typeof schema>;
 
@@ -56,28 +58,47 @@ export async function seedCatalogDefaults(db: Db, options?: { demoUsers?: boolea
 }
 
 export async function seedLocalDevelopmentIfEmpty(db: Db) {
-  if (process.env.NODE_ENV === "production") return;
+  if (process.env.NODE_ENV === "production" && !isPrototypeMode()) return;
   const [row] = await db.select({ value: count() }).from(users);
   if ((row?.value ?? 0) > 0) return;
   await seedCatalogDefaults(db, { demoUsers: process.env.SEED_DEMO_USERS !== "false" });
+  if (isPrototypeMode()) {
+    await seedPrototypeDemoContent(db);
+  }
 }
 
-/** Creates the first admin from BOOTSTRAP_* env vars when the users table is empty. Safe to run on every cold start. */
-export async function bootstrapProductionIfEmpty(db: Db) {
-  if (!process.env.DATABASE_URL) return { bootstrapped: false as const, reason: "no_database" as const };
-  if (!process.env.BOOTSTRAP_ADMIN_EMAIL || !process.env.BOOTSTRAP_ADMIN_PASSWORD) {
-    return { bootstrapped: false as const, reason: "no_bootstrap_credentials" as const };
+/** Seeds demo or bootstrap users on first deploy. Safe to run on every cold start. */
+export async function seedDeployedEnvironmentIfEmpty(db: Db) {
+  if (!process.env.DATABASE_URL) {
+    return { seeded: false as const, reason: "no_database" as const };
   }
 
   const [row] = await db.select({ value: count() }).from(users);
   if ((row?.value ?? 0) > 0) {
-    return { bootstrapped: false as const, reason: "users_exist" as const };
+    return { seeded: false as const, reason: "users_exist" as const };
+  }
+
+  if (isPrototypeMode()) {
+    const result = await seedCatalogDefaults(db, { demoUsers: true });
+    if (!result.seededAdmin) {
+      return { seeded: false as const, reason: "seed_skipped" as const };
+    }
+    await seedPrototypeDemoContent(db);
+    return { seeded: true as const, mode: "prototype" as const, email: "admin@sdl.local" };
+  }
+
+  if (!process.env.BOOTSTRAP_ADMIN_EMAIL || !process.env.BOOTSTRAP_ADMIN_PASSWORD) {
+    return { seeded: false as const, reason: "no_bootstrap_credentials" as const };
   }
 
   const result = await seedCatalogDefaults(db, { demoUsers: false });
   if (!result.seededAdmin) {
-    return { bootstrapped: false as const, reason: "seed_skipped" as const };
+    return { seeded: false as const, reason: "seed_skipped" as const };
   }
 
-  return { bootstrapped: true as const, email: process.env.BOOTSTRAP_ADMIN_EMAIL.trim().toLowerCase() };
+  return {
+    seeded: true as const,
+    mode: "bootstrap" as const,
+    email: process.env.BOOTSTRAP_ADMIN_EMAIL.trim().toLowerCase(),
+  };
 }

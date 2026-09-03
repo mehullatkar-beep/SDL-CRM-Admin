@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { assertProductionEnv, missingProductionEnv, shouldUseBlobStorage } from "./env";
+import { assertProductionEnv, isPrototypeMode, missingProductionEnv, shouldUseBlobStorage } from "./env";
 
 describe("production environment validation", () => {
-  it("skips required checks during next build and outside Vercel production", () => {
+  it("skips required checks during next build, prototype mode, and outside Vercel production", () => {
     expect(missingProductionEnv({ NODE_ENV: "production" })).toEqual([]);
     expect(missingProductionEnv({ VERCEL_ENV: "preview" })).toEqual([]);
+    expect(missingProductionEnv({ VERCEL_ENV: "production", SDL_PROTOTYPE_MODE: "true" })).toEqual(
+      [],
+    );
     expect(
       missingProductionEnv({
         VERCEL_ENV: "production",
@@ -24,6 +27,11 @@ describe("production environment validation", () => {
     expect(() => assertProductionEnv({ VERCEL_ENV: "production" })).toThrow(
       /Missing production environment variables/,
     );
+  });
+
+  it("treats prototype mode as non-managed production", () => {
+    expect(isPrototypeMode({ SDL_PROTOTYPE_MODE: "true" })).toBe(true);
+    expect(() => shouldUseBlobStorage({ VERCEL_ENV: "production", SDL_PROTOTYPE_MODE: "true" })).not.toThrow();
   });
 
   it("writes images to local disk for next start without a blob token", () => {
