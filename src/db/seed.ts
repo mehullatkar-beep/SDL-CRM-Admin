@@ -61,3 +61,23 @@ export async function seedLocalDevelopmentIfEmpty(db: Db) {
   if ((row?.value ?? 0) > 0) return;
   await seedCatalogDefaults(db, { demoUsers: process.env.SEED_DEMO_USERS !== "false" });
 }
+
+/** Creates the first admin from BOOTSTRAP_* env vars when the users table is empty. Safe to run on every cold start. */
+export async function bootstrapProductionIfEmpty(db: Db) {
+  if (!process.env.DATABASE_URL) return { bootstrapped: false as const, reason: "no_database" as const };
+  if (!process.env.BOOTSTRAP_ADMIN_EMAIL || !process.env.BOOTSTRAP_ADMIN_PASSWORD) {
+    return { bootstrapped: false as const, reason: "no_bootstrap_credentials" as const };
+  }
+
+  const [row] = await db.select({ value: count() }).from(users);
+  if ((row?.value ?? 0) > 0) {
+    return { bootstrapped: false as const, reason: "users_exist" as const };
+  }
+
+  const result = await seedCatalogDefaults(db, { demoUsers: false });
+  if (!result.seededAdmin) {
+    return { bootstrapped: false as const, reason: "seed_skipped" as const };
+  }
+
+  return { bootstrapped: true as const, email: process.env.BOOTSTRAP_ADMIN_EMAIL.trim().toLowerCase() };
+}

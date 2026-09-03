@@ -59,14 +59,17 @@ The HTTP adapter expects the normalized contract documented by `/api/openapi`-ad
 
 ## Vercel production setup
 
-1. Provision Neon Postgres through Vercel Marketplace and set `DATABASE_URL`.
-2. Provision Vercel Blob and set `BLOB_READ_WRITE_TOKEN`.
-3. Provision Upstash Redis and set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`.
-4. Set a strong `AUTH_SECRET` (Production **and** Preview), Crelio variables, origins, and `NEXT_PUBLIC_CATALOG_CURRENCY`. Generate with `openssl rand -base64 32`. The Next.js build no longer requires it at compile time; the running app does.
-5. Run `npm run db:migrate`, then bootstrap the first admin with temporary `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_PASSWORD` values via `npm run db:seed`. Remove the bootstrap password afterward.
-6. Validate `/api/health`, `/api/ready`, `/api/openapi`, login/RBAC, package media, and mobile catalog responses on a preview deployment before promotion.
+**Customer handoff:** follow [`DEPLOYMENT.md`](DEPLOYMENT.md) — Vercel dashboard only; migrations and first admin are automatic.
 
-PGlite and local `.data` uploads are development fallbacks only. Production fails closed if managed storage, rate limiting, auth, or the real lab-master provider is missing.
+Summary:
+
+1. Set `AUTH_SECRET`, `BOOTSTRAP_ADMIN_EMAIL`, and `BOOTSTRAP_ADMIN_PASSWORD` in Vercel.
+2. Connect Neon (`DATABASE_URL`). Delete any placeholder `DATABASE_URL` first if Neon reports a conflict.
+3. Deploy. Tables migrate on build; first admin is created on first request.
+4. Sign in, then remove `BOOTSTRAP_ADMIN_PASSWORD` from Vercel.
+5. Add Blob, Redis, and Crelio vars before go-live (see `DEPLOYMENT.md`).
+
+Local development still uses PGlite and demo users (`SEED_DEMO_USERS=true npm run db:seed`).
 
 Order write-back and CrelioHealth webhooks are reserved at `src/lib/lims-orders/` and `POST /api/webhooks/crelio` until the vendor documents those contracts. Do not invent payload fields.
 
