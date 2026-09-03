@@ -14,7 +14,17 @@ function isPublicAsset(pathname: string) {
   );
 }
 
-export const proxy = auth((req) => {
+function missingAuthSecretResponse() {
+  return new NextResponse(
+    "This deployment is missing AUTH_SECRET. Add it in Vercel → Settings → Environment Variables for Production and Preview, then redeploy.",
+    {
+      status: 503,
+      headers: { "content-type": "text/plain; charset=utf-8" },
+    },
+  );
+}
+
+const protect = auth((req) => {
   const { pathname } = req.nextUrl;
 
   if (isPublicAsset(pathname)) {
@@ -36,6 +46,13 @@ export const proxy = auth((req) => {
 
   return NextResponse.next();
 });
+
+export function proxy(...args: Parameters<typeof protect>) {
+  if (process.env.NODE_ENV === "production" && !process.env.AUTH_SECRET) {
+    return missingAuthSecretResponse();
+  }
+  return protect(...args);
+}
 
 export const config = {
   matcher: [

@@ -1,10 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { assertProductionEnv, shouldUseBlobStorage } from "./env";
+import { assertProductionEnv, missingProductionEnv, shouldUseBlobStorage } from "./env";
 
 describe("production environment validation", () => {
   it("skips required checks during next build and outside Vercel production", () => {
+    expect(missingProductionEnv({ NODE_ENV: "production" })).toEqual([]);
+    expect(missingProductionEnv({ VERCEL_ENV: "preview" })).toEqual([]);
+    expect(
+      missingProductionEnv({
+        VERCEL_ENV: "production",
+        NEXT_PHASE: "phase-production-build",
+      }),
+    ).toEqual([]);
     expect(() => assertProductionEnv({ NODE_ENV: "production" })).not.toThrow();
-    expect(() => assertProductionEnv({ VERCEL_ENV: "preview" })).not.toThrow();
     expect(() =>
       assertProductionEnv({
         VERCEL_ENV: "production",

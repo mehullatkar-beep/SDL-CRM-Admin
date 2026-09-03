@@ -25,14 +25,19 @@ export function shouldUseBlobStorage(env: NodeJS.Dict<string> = process.env) {
   return false;
 }
 
-export function assertProductionEnv(env: NodeJS.Dict<string> = process.env) {
-  if (isNextProductionBuild(env) || !isManagedProduction(env)) return;
+export function missingProductionEnv(env: NodeJS.Dict<string> = process.env) {
+  if (isNextProductionBuild(env) || !isManagedProduction(env)) return [];
 
   const missing: string[] = PRODUCTION_REQUIRED.filter((key) => !env[key]);
   if (env.LAB_MASTER_PROVIDER !== "http") {
     missing.push("LAB_MASTER_PROVIDER");
   }
+  return [...new Set(missing)];
+}
+
+export function assertProductionEnv(env: NodeJS.Dict<string> = process.env) {
+  const missing = missingProductionEnv(env);
   if (missing.length > 0) {
-    throw new Error(`Missing production environment variables: ${[...new Set(missing)].join(", ")}`);
+    throw new Error(`Missing production environment variables: ${missing.join(", ")}`);
   }
 }
