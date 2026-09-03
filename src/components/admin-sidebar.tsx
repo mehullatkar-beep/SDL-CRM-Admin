@@ -4,17 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Bell,
-  ClipboardList,
   Megaphone,
-  MessageSquareText,
   PanelLeftClose,
   PanelLeftOpen,
   Package,
-  Palette,
   Percent,
   TestTube,
   X,
-  CircleHelp,
 } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import {
@@ -26,7 +22,6 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
@@ -37,30 +32,16 @@ const NAV_GROUPS = [
   {
     label: "Portal Configurations",
     items: [
-      { href: "/catalog/packages", label: "Packages", icon: Package, comingSoon: false },
-      { href: "/catalog/tests", label: "Tests", icon: TestTube, comingSoon: false },
-      { href: "/branding", label: "Branding & Checkout", icon: Palette, comingSoon: true },
-    ],
-  },
-  {
-    label: "Operations",
-    items: [
-      { href: "/orders", label: "Booked orders", icon: ClipboardList, comingSoon: true },
+      { href: "/catalog/packages", label: "Packages", icon: Package },
+      { href: "/catalog/tests", label: "Tests", icon: TestTube },
     ],
   },
   {
     label: "Engagement",
     items: [
-      { href: "/coupons", label: "Coupons", icon: Percent, comingSoon: false },
-      { href: "/banners", label: "Banners", icon: Megaphone, comingSoon: false },
-      { href: "/notifications", label: "Notifications", icon: Bell, comingSoon: false },
-    ],
-  },
-  {
-    label: "Patient care",
-    items: [
-      { href: "/feedback", label: "Feedback", icon: MessageSquareText, comingSoon: true },
-      { href: "/queries", label: "Patient queries", icon: CircleHelp, comingSoon: true },
+      { href: "/coupons", label: "Coupons", icon: Percent },
+      { href: "/banners", label: "Banners", icon: Megaphone },
+      { href: "/notifications", label: "Notifications", icon: Bell },
     ],
   },
 ];
@@ -103,7 +84,6 @@ export function AdminSidebar() {
                         <span>{item.label}</span>
                       </Link>
                     </SidebarMenuButton>
-                    {item.comingSoon ? <SidebarMenuBadge>Soon</SidebarMenuBadge> : null}
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
