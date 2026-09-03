@@ -1,0 +1,20 @@
+CREATE TABLE "coupons" (
+	"id" text PRIMARY KEY NOT NULL,
+	"code" text NOT NULL,
+	"name" text NOT NULL,
+	"description" text DEFAULT '' NOT NULL,
+	"discount_type" text NOT NULL,
+	"discount_value" integer NOT NULL,
+	"max_discount_amount" integer,
+	"min_cart_amount" integer DEFAULT 0 NOT NULL,
+	"valid_from" timestamp with time zone,
+	"valid_to" timestamp with time zone,
+	"max_redemptions" integer,
+	"max_per_patient" integer DEFAULT 1 NOT NULL,
+	"redemption_count" integer DEFAULT 0 NOT NULL,
+	"active" boolean DEFAULT true NOT NULL,
+	"archived" boolean DEFAULT false NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "coupons_code_unique" UNIQUE("code")
+);
