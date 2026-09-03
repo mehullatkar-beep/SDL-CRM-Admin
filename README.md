@@ -62,7 +62,7 @@ The HTTP adapter expects the normalized contract documented by `/api/openapi`-ad
 1. Provision Neon Postgres through Vercel Marketplace and set `DATABASE_URL`.
 2. Provision Vercel Blob and set `BLOB_READ_WRITE_TOKEN`.
 3. Provision Upstash Redis and set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`.
-4. Set a strong `AUTH_SECRET`, Crelio variables, origins, and `NEXT_PUBLIC_CATALOG_CURRENCY`.
+4. Set a strong `AUTH_SECRET` (Production **and** Preview), Crelio variables, origins, and `NEXT_PUBLIC_CATALOG_CURRENCY`. Generate with `openssl rand -base64 32`. The Next.js build no longer requires it at compile time; the running app does.
 5. Run `npm run db:migrate`, then bootstrap the first admin with temporary `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_PASSWORD` values via `npm run db:seed`. Remove the bootstrap password afterward.
 6. Validate `/api/health`, `/api/ready`, `/api/openapi`, login/RBAC, package media, and mobile catalog responses on a preview deployment before promotion.
 
