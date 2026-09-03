@@ -1,71 +1,74 @@
-# Deploy SDL Catalog Admin on Vercel
+# SDL ops — deploy and hand off to the lab
 
-Customer-facing checklist. Everything below is done in the **Vercel dashboard** — no developer laptop required after the repo is connected.
+**Internal only.** The lab customer receives a **URL + login credentials**. They do not configure Vercel, Neon, env vars, or run any scripts.
 
-## 1. Import the project
+## What the customer gets
 
-1. [vercel.com/new](https://vercel.com/new) → import `mehullatkar-beep/SDL-CRM-Admin` (or your fork).
-2. Framework preset: **Next.js** (auto-detected).
-3. Do **not** deploy yet if you can pause — set env vars first (step 2).
+Share only:
 
-## 2. Required environment variables
-
-Open **Project → Settings → Environment Variables**. Add these for **Production** and **Preview**.
-
-| Variable | What to enter |
+| Item | Example |
 | --- | --- |
-| `AUTH_SECRET` | Run `openssl rand -base64 32` once and paste the output. |
-| `DATABASE_URL` | From Neon (step 3). |
-| `BOOTSTRAP_ADMIN_EMAIL` | Email the lab admin will use to sign in. |
-| `BOOTSTRAP_ADMIN_PASSWORD` | Strong temporary password for first login. |
-| `BOOTSTRAP_ADMIN_NAME` | Optional display name (defaults to “Lab Admin”). |
+| Admin URL | `https://sdl-crm-admin.vercel.app/login` |
+| Work email | `admin@lab.com` |
+| Password | (the password you set during setup below) |
 
-**Important:** If Vercel shows “DATABASE_URL already exists” when connecting Neon, go to Environment Variables, **delete the old empty `DATABASE_URL`**, then connect Neon again (prefix `DATABASE` → `DATABASE_URL`).
+Nothing else. No setup guide, no dashboard access, no terminal steps.
 
-## 3. Connect Neon Postgres
+---
 
-1. **Storage → Connect Database → Neon**.
-2. Environments: **Production** and **Preview**.
-3. Prefix: **`DATABASE`** (creates `DATABASE_URL`).
-4. **Connect Project**, then **Redeploy**.
+## SDL setup (before sharing the URL)
 
-Database tables are created automatically during deploy (`vercel-build` runs migrations). The first admin account is created automatically on the first request when `BOOTSTRAP_*` vars are set and no users exist yet.
+### 1. Vercel project
 
-## 4. First login
+1. Import the GitHub repo into Vercel.
+2. Connect **Neon** (Storage → Neon). Prefix **`DATABASE`** → `DATABASE_URL`.
+   - If “DATABASE_URL already exists”: delete the placeholder in Environment Variables, then reconnect Neon.
+3. Set **Production** env vars:
 
-1. Open the Vercel URL (e.g. `https://your-project.vercel.app/login`).
-2. Sign in with `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_PASSWORD`.
-3. After confirming login works, **delete `BOOTSTRAP_ADMIN_PASSWORD`** from Vercel env vars and redeploy. The admin account stays; the env password is no longer needed.
-
-## 5. Smoke checks
-
-| URL | Expected |
+| Variable | Notes |
 | --- | --- |
-| `/api/health` | `{ "status": "ok" }` |
-| `/login` | Sign-in page loads |
-| After login | `/catalog/tests` loads |
+| `AUTH_SECRET` | `openssl rand -base64 32` |
+| `DATABASE_URL` | From Neon (auto if connected) |
+| `BOOTSTRAP_ADMIN_EMAIL` | The lab admin’s real work email |
+| `BOOTSTRAP_ADMIN_PASSWORD` | Strong password you will share with the lab |
+| `BOOTSTRAP_ADMIN_NAME` | e.g. `Lab Admin` |
 
-## 6. Before go-live (production only)
+4. **Deploy.** Migrations run on build; the admin account is created on the first request.
 
-Add when the lab is ready — not required for admin login and catalog setup:
+### 2. Verify before handoff
+
+1. Open `/login` on the production URL.
+2. Sign in with the bootstrap email and password.
+3. Confirm `/catalog/tests` loads.
+4. **Remove `BOOTSTRAP_ADMIN_PASSWORD`** from Vercel and redeploy (admin account remains in Neon).
+
+### 3. Hand off to the lab
+
+Send the URL, email, and password (secure channel). They sign in and start configuring tests/packages.
+
+---
+
+## Optional — add before go-live
+
+Not required for admin login and catalog work. SDL adds these when integrations are ready:
 
 | Variable | Purpose |
 | --- | --- |
-| `BLOB_READ_WRITE_TOKEN` | Package and banner image uploads |
-| `UPSTASH_REDIS_REST_URL` | API rate limiting |
-| `UPSTASH_REDIS_REST_TOKEN` | API rate limiting |
-| `LAB_MASTER_PROVIDER` | Set to `http` |
-| `LAB_MASTER_API_URL` | Crelio catalog gateway |
-| `LAB_MASTER_API_TOKEN` | Crelio token |
-| `LAB_MASTER_LAB_PUBLIC_KEY` | Lab public key |
+| `BLOB_READ_WRITE_TOKEN` | Image uploads |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | API rate limits |
+| `LAB_MASTER_PROVIDER=http` + Crelio vars | Live test catalog |
 | `NEXT_PUBLIC_CATALOG_CURRENCY` | e.g. `SAR` |
 | `NEXT_PUBLIC_PATIENT_PORTAL_ORIGIN` | Patient portal URL |
-| `ALLOWED_API_ORIGINS` | Mobile app / portal origins |
+| `ALLOWED_API_ORIGINS` | Mobile app origins |
 
-Preview deployments can run with Neon + `AUTH_SECRET` + bootstrap vars only. Mock lab data is used until Crelio vars are set.
+Preview deployments can use Neon + `AUTH_SECRET` + bootstrap only; mock lab data until Crelio is wired.
 
-## Troubleshooting
+---
 
-- **Internal Server Error on every page** — check `AUTH_SECRET` is set for the environment you deployed (Production vs Preview).
-- **Login fails “Invalid credentials”** — confirm `BOOTSTRAP_*` vars were set **before** first deploy, or redeploy after adding them. Check Neon has tables (Vercel build log should show “Applied migrations to managed Postgres”).
-- **DATABASE_URL conflict** — delete the placeholder variable in Vercel, then reconnect Neon.
+## Troubleshooting (SDL ops)
+
+| Symptom | Fix |
+| --- | --- |
+| 500 on every page | `AUTH_SECRET` missing for Production |
+| Login fails | Redeploy after setting `BOOTSTRAP_*`; check build log for “Applied migrations to managed Postgres” |
+| DATABASE_URL conflict | Delete empty placeholder, reconnect Neon |

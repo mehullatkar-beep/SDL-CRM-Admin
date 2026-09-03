@@ -16,7 +16,7 @@ function isPublicAsset(pathname: string) {
 
 function missingAuthSecretResponse() {
   return new NextResponse(
-    "This deployment is missing AUTH_SECRET. Add it in Vercel → Settings → Environment Variables for Production and Preview, then redeploy.",
+    "This admin site is not fully configured yet. Contact SDL support.",
     {
       status: 503,
       headers: { "content-type": "text/plain; charset=utf-8" },

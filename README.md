@@ -57,19 +57,11 @@ LAB_MASTER_API_TOKEN=...
 
 The HTTP adapter expects the normalized contract documented by `/api/openapi`-adjacent integration tests. Replace the isolated mapper when official CrelioHealth sandbox documentation is available; do not spread vendor payload fields into catalog or UI code.
 
-## Vercel production setup
+## Vercel / customer handoff
 
-**Customer handoff:** follow [`DEPLOYMENT.md`](DEPLOYMENT.md) — Vercel dashboard only; migrations and first admin are automatic.
+**The lab customer only receives a URL and login credentials.** SDL ops configures Vercel before handoff — see [`DEPLOYMENT.md`](DEPLOYMENT.md).
 
-Summary:
-
-1. Set `AUTH_SECRET`, `BOOTSTRAP_ADMIN_EMAIL`, and `BOOTSTRAP_ADMIN_PASSWORD` in Vercel.
-2. Connect Neon (`DATABASE_URL`). Delete any placeholder `DATABASE_URL` first if Neon reports a conflict.
-3. Deploy. Tables migrate on build; first admin is created on first request.
-4. Sign in, then remove `BOOTSTRAP_ADMIN_PASSWORD` from Vercel.
-5. Add Blob, Redis, and Crelio vars before go-live (see `DEPLOYMENT.md`).
-
-Local development still uses PGlite and demo users (`SEED_DEMO_USERS=true npm run db:seed`).
+Migrations and first admin creation are automatic once SDL sets env vars and deploys.
 
 Order write-back and CrelioHealth webhooks are reserved at `src/lib/lims-orders/` and `POST /api/webhooks/crelio` until the vendor documents those contracts. Do not invent payload fields.
 
